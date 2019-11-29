@@ -2,22 +2,18 @@
 This module implements a binary on/off switch, derived from the generic actor.
 """
 
-from .generic import GenericActor
+from .generic2 import Generic2Actor
 
 
-class SwitchActor(GenericActor):
+class SwitchActor(Generic2Actor):
     """A binary on/off switch actor for Schedy."""
 
     name = "switch"
     config_defaults = {
-        **GenericActor.config_defaults,
-        "attributes": [
-            {
-                "attribute": "state",
-                "values": {
-                    "on": {"service": "homeassistant/turn_on"},
-                    "off": {"service": "homeassistant/turn_off"},
-                },
-            }
+        **Generic2Actor.config_defaults,
+        "slots": [{"attribute": "state"}],
+        "values": [
+            {"slots": ["on"], "calls": [{"service": "homeassistant/turn_on"}]},
+            {"slots": ["off"], "calls": [{"service": "homeassistant/turn_off"}]},
         ],
     }
