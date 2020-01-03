@@ -90,7 +90,15 @@ class ActorBase:
             level="DEBUG",
             prefix=common.LOG_PREFIX_OUTGOING,
         )
-        self.do_send()
+        try:
+            self.do_send()
+        except:
+            self.log("CRASH3", level="DEBUG")
+            self._gave_up_sending = False
+            self._resending_timer = self.app.run_in(
+                self._resending_cb, interval, left_tries=left_tries - 1
+            )
+            raise
 
         self._gave_up_sending = False
         self._resending_timer = self.app.run_in(
@@ -281,9 +289,15 @@ class ActorBase:
             )
             return False, value
 
-        self.cancel_resending_timer()
-        self._resending_cb({"left_tries": self.cfg["send_retries"] + 1})
+        try:
+            self._resending_cb({"left_tries": self.cfg["send_retries"] + 1})
+        except:
+            self.log(
+                "CRASH", level="WARNING"
+            )
+            return False, self._current_value
 
+        self.cancel_resending_timer()
         return True, value
 
     @staticmethod
